@@ -99,9 +99,9 @@ RUN service neo4j start && \
 # Load backup with Clinical Knowledge Graph
 RUN mkdir -p /var/lib/neo4j/data/backup
 # RUN wget -O /var/lib/neo4j/data/backup/ckg_latest_4.2.3.dump https://datashare.biochem.mpg.de/s/kCW7uKZYTfN8mwg/download
-COPY ./data/db/ckg_080520.dump /var/lib/neo4j/data/backup/
+COPY ./data/db/ckg_latest_4.2.3.dump /var/lib/neo4j/data/backup/ckg_latest_4.2.3.dump
 RUN mkdir -p /var/lib/neo4j/data/databases/graph.db
-RUN sudo -u neo4j neo4j-admin load --from=/var/lib/neo4j/data/backup/ckg_080520.dump --database=graph.db --force
+RUN sudo -u neo4j neo4j-admin load --from=/var/lib/neo4j/data/backup/ckg_latest_4.2.3.dump --database=graph.db --force
 
 # # Remove dump file
 RUN echo "Done with restoring backup, removing backup folder"

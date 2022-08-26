@@ -821,7 +821,10 @@ def main():
         subprocess.Popen(celery_cmdline)
         print("Done callling {} ".format(celery_cmdline))
     
-    application.run(debug=False, host='0.0.0.0')  
+    application.run(debug=True, host='0.0.0.0')  
+    from werkzeug.debug import DebuggedApplication
+    application.wsgi_app = DebuggedApplication(application.wsgi_app, True)
+    application.debug = True
 
 
 if __name__ == '__main__':

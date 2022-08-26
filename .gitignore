@@ -44,3 +44,7 @@ Thumbs.db
 # Jupyter Notebooks files #
 ###########################
 .ipynb_checkpoints
+
+data/neo4j/data/*
+data/neo4j/import/*
+!data/neo4j/*/.gitkeep

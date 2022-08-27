@@ -47,4 +47,8 @@ Thumbs.db
 
 data/neo4j/data/*
 data/neo4j/import/*
+data/ckg_data/*
+data/example/*
+!data/ckg_data/.gitkeep
 !data/neo4j/*/.gitkeep
+!data/example/example_files

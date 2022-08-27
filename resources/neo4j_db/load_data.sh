@@ -6,12 +6,14 @@ log_info() {
   return
 }
 
+chmod -R 755 /var/lib/neo4j/plugins
+
 # turn on bash's job control
 # https://stackoverflow.com/questions/11821378/what-does-bashno-job-control-in-this-shell-mean/46829294#46829294
 set -m
 
 echo "Check dump file ${DB_DUMP_FILE}"
-if [ -f "/import/${DB_DUMP_FILE}" ] && [ ! -f "/data/databases/graph.db" ]; then
+if [ -f "/import/${DB_DUMP_FILE}" ] && [ ! -d "/data/databases/graph.db" ]; then
     mkdir -p /var/lib/neo4j/data/transactions
     mkdir -p /var/lib/neo4j/data/databases/graph.db
     log_info "Import database dump"

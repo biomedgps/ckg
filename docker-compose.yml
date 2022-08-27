@@ -20,6 +20,43 @@ services:
       - ./resources/neo4j_db/plugins:/var/lib/neo4j/plugins
       - ./resources/neo4j_db/load_data.sh:/docker-entrypoint.sh
       - ./resources/neo4j_db/neo4j.conf:/var/lib/neo4j/neo4j.conf
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7474"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  ckg:
+    image: ckg:latest
+    container_name: "ckg"
+    restart: "always"
+    networks:
+      - ckg-network
+    links: 
+      - neo4j
+    depends_on: 
+      - neo4j
+    volumes:
+      - ./data/example:/CKG/data
+      - ./data/ckg_data/imports:/CKG/imports
+      - ./data/ckg_data/downloads:/CKG/downloads
+      - ./data/ckg_data/reports:/CKG/reports
+      - ./docker_entrypoint.ckg.sh:/CKG/docker_entrypoint.sh
+      - ./resources/connector_config.yml:/CKG/ckg/graphdb_connector/connector_config.yml
+    expose:
+      - "8090"
+      - "8050"
+      - "5000"
+      - "6379"
+    ports:
+      # CKG prod
+      - "8050:8050"
+      # CKG dev
+      - "5000:5000"
+      # Redis
+      - "6379:6379"
+      # jupyterHub
+      - "8090:8090"
 
 networks:
   ckg-network:

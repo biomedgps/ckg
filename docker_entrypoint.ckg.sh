@@ -2,7 +2,9 @@
 echo "Entry point to CKG Docker"
 cd /CKG
 
-while ! [[ `wget -S --spider http://localhost:7474  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; do
+chown -R nginx:ckg_group /CKG/*
+
+while ! [[ `wget -S --spider http://neo4j:7474  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; do
 echo "Database not ready"
 sleep 45
 done

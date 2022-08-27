@@ -2,6 +2,8 @@
 echo "Entry point to CKG Docker"
 cd /CKG
 
+echo "Initializing..."
+python3 ckg/init.py
 chown -R nginx:ckg_group /CKG/*
 
 while ! [[ `wget -S --spider http://neo4j:7474  2>&1 | grep 'HTTP/1.1 200 OK'` ]]; do

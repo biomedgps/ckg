@@ -22,9 +22,24 @@ RUN apt-get update && \
     apt-get install -yq redis-server && \
     apt-get install -yq git && \
     apt-get install -y sudo && \
-    apt-get install -y net-tools &&\
+    apt-get install -y net-tools && \
+    apt-get install -y npm nodejs && \
+    npm install -g configurable-http-proxy && \
+    gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9 && \
+    gpg -a --export E084DAB9 > cran.asc && \
+    apt-key add cran.asc && \
+    apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 51716619E084DAB9 && \
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" > /etc/apt/sources.list.d/cran.list && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends littler r-cran-littler r-base=${R_BASE_VERSION}* r-base-dev=${R_BASE_VERSION}* r-recommended=${R_BASE_VERSION}* && \
+    echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site && \
+    apt-get clean all && \
     rm -rf /var/lib/apt/lists/*
 
+WORKDIR /
+
+# Set the locale
+RUN locale-gen en_US.UTF-8
 
 # User management
 RUN groupadd ckg_group && \
@@ -37,48 +52,27 @@ RUN groupadd ckg_group && \
     adduser --disabled-password --gecos '' --uid 1500 nginx && \
     usermod -a -G ckg_group nginx
 
-WORKDIR /
-
-# Set the locale
-RUN locale-gen en_US.UTF-8
-
-# gpg key for cran updates
-RUN gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys E084DAB9 && \
-    gpg -a --export E084DAB9 > cran.asc && \
-    apt-key add cran.asc
-
-RUN apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 51716619E084DAB9   
-
-RUN echo "deb https://cloud.r-project.org/bin/linux/ubuntu bionic-cran35/" > /etc/apt/sources.list.d/cran.list
-
-# R
-RUN apt-get update && \
-   apt-get install -y --no-install-recommends \ 
-   littler \
-   r-cran-littler \
-   r-base=${R_BASE_VERSION}* \
-   r-base-dev=${R_BASE_VERSION}* \
-   r-recommended=${R_BASE_VERSION}* && \
-   echo 'options(repos = c(CRAN = "https://cloud.r-project.org/"), download.file.method = "libcurl")' >> /etc/R/Rprofile.site
-
 ## Install packages
 COPY /resources/R_packages.R /R_packages.R
 RUN Rscript R_packages.R
 
 # CKG Python library
-RUN wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz
-RUN tar -xzf Python-3.7.9.tgz
-WORKDIR /Python-3.7.9
-RUN ./configure
-RUN make altinstall
-RUN make install
+RUN wget https://www.python.org/ftp/python/3.7.9/Python-3.7.9.tgz && \
+    tar -xzf Python-3.7.9.tgz && \
+    rm -rf Python-3.7.9.tgz && \
+    cd /Python-3.7.9 && \
+    ./configure && \
+    make altinstall && \
+    make install && \
+    cd / && \
+    rm -rf /Python-3.7.9
+
 ## pip upgrade
-RUN wget https://bootstrap.pypa.io/get-pip.py
-RUN python3 get-pip.py
-RUN pip3 install --upgrade pip
-RUN pip3 install setuptools
 COPY ./requirements.txt .
-RUN python3 -m pip install --ignore-installed -r requirements.txt
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && rm get-pip.py
+RUN pip3 install --no-cache-dir --upgrade pip setuptools && \
+    pip3 install --no-cache-dir --ignore-installed jupyterhub uwsgi && \
+    pip3 install --no-cache-dir -r requirements.txt 
 
 ### Creating CKG directory and setting up CKG
 RUN mkdir /CKG
@@ -103,10 +97,6 @@ RUN ls -alrth data
 WORKDIR /
 
 # JupyterHub
-RUN apt-get -y install npm nodejs && \
-    npm install -g configurable-http-proxy
-RUN pip3 install jupyterhub
-
 RUN mkdir /etc/jupyterhub
 COPY /resources/jupyterhub.py /etc/jupyterhub/.
 RUN cp -r /CKG/ckg/notebooks /home/adminhub/.
@@ -122,9 +112,6 @@ COPY /resources/nginx.conf /etc/nginx/.
 
 RUN chmod 777 /run/ -R && \
     chmod 777 /root/ -R
-
-## Install uWSGI
-RUN pip3 install uwsgi
 
 ## Copy the base uWSGI ini file
 COPY /resources/uwsgi.ini /etc/uwsgi/apps-available/uwsgi.ini

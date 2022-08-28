@@ -27,7 +27,7 @@ services:
       retries: 3
 
   ckg:
-    image: ckg:latest
+    image: ckg:202208281155
     container_name: "ckg"
     restart: "always"
     networks:
